@@ -20,7 +20,7 @@ models:
       - name: channel_order_number
         description: "Order number as recorded in the sales channel."
       - name: placed_ts
-        description: "Timestamp when the order was placed."
+        description: "Timestamp when the order was placedd."
         tests:
           - not_null
       - name: updated_ts
