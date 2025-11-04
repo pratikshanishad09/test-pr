@@ -9,7 +9,7 @@ models:
       - not_empty
     columns:
       - name: order_number
-        description: "Unique identifier for the customer order."
+        description: "Unique identifier for the customer orders."
         tests:
           - unique
           - not_null
