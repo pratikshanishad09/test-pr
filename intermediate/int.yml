@@ -1,0 +1,382 @@
+version: 2
+
+models:
+  - name: int_canceled_orders__transform
+    description: "Intermediate table consolidating canceled order-level data including customer details, updated timestamp, order status, cancel reason, cancel subreason and cancel note."
+    meta:
+      owner: "Vivek Ravva"
+    tests:
+      - not_empty
+    columns:
+      - name: order_number
+        description: "Unique identifier for the customer order."
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Unique identifier for the customer placing the order."
+        tests:
+          - not_null
+      - name: channel_order_number
+        description: "Order number as recorded in the sales channel."
+      - name: placed_ts
+        description: "Timestamp when the order was placed."
+        tests:
+          - not_null
+      - name: updated_ts
+        description: "Timestamp when the order was updated."
+        tests:
+            - not_null
+      - name: order_status
+        description: "Order status(will always be 'Canceled')."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Canceled']
+      - name: cancel_reason
+        description: "Reason for Cancellation."
+      - name: order_substatus
+        description: "Subreason for cancel."
+      - name: buyer_note
+        description: "cancel order note."
+      - name: product_hash
+        description: "Hashed identifier for the product in the order."
+        tests:
+          - not_null
+      - name: type
+        description: "Type of order."
+        tests:
+          - not_null
+      - name: parent_order_number
+        description: "Identifier for the parent order, if applicable."
+      - name: order_currency
+        description: "Currency used for the order transaction."
+        tests:
+          - not_null
+      - name: shipping_address_id
+        description: "Unique identifier for the shipping address associated with the order."
+      - name: shipping_amount
+        description: "Shipping cost charged for the order."
+        tests:
+          - not_null
+          - amount_non_negative:
+              severity: error
+      - name: shipping_tax_amount
+        description: "Tax amount applied to the shipping cost."
+        tests:
+          - not_null
+          - amount_non_negative:
+              severity: error
+      - name: shipping_discount_amount
+        description: "Discount applied to the shipping cost."
+        tests:
+          - not_null
+          - amount_non_negative:
+              severity: error
+      - name: admin_discount_amount
+        description: "Discount applied at the order level by an administrator or system rule."
+        tests:
+          - not_null
+          - amount_non_negative:
+              severity: error
+      - name: handling_amount
+        description: "Handling fee charged for the order."
+        tests:
+          - not_null
+          - amount_non_negative:
+              severity: error
+      - name: handling_tax_amount
+        description: "Tax amount applied to the handling fee."
+        tests:
+          - not_null
+          - amount_non_negative:
+              severity: error
+      - name: subtotal_amount
+        description: "Total cost of items in the order before taxes, discounts, and additional charges."
+        tests:
+          - not_null
+          - amount_non_negative:
+              severity: error
+      - name: total_amount
+        description: "The total amount on the order the customer agreed to at the time of order placement."
+        tests:
+          - not_null
+          - amount_non_negative:
+              severity: error
+      - name: retail_delivery_fee
+        description: "Retail delivery fee extracted from extended order data."
+        tests:
+          - not_null
+          - amount_non_negative:
+              severity: error
+      - name: shipping_insurance_amount
+        description: "Insurance amount applied to the shipping."
+        tests:
+          - not_null
+          - amount_non_negative:
+              severity: error
+      - name: promotion_discount_data
+        description: "Promotion Data in JSON format."
+
+  - name: int_canceled_orders_stg_report_transform
+    description: "Intermediate model that enriches canceled sales orders with item, channel and customer order types and channel attributes."
+    meta:
+      owner: "Vivek Ravva"
+    tests:
+      - not_empty
+    columns:
+    - name: sales_order_type
+      description: "Classifies the order as Wholesale or Retail based on product and order type"
+      tests:
+        - not_null
+        - accepted_values:
+            values: ['Wholesale', 'Retail']
+    - name: sales_order_item_identifier
+      description: "Unique identifier for the sales order item"
+      tests:
+        - not_null
+    - name: sales_order_parent_order_identifier
+      description: "Identifier for the parent order if applicable"
+    - name: sales_order_item_core_charge_amount
+      description: "Core charge amount for the item"
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_item_amount
+      description: "Price of the sales order item"
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_item_est_dealer_net
+      description: "Estimated dealer net cost for the item"
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_item_sales_tax
+      description: "Sales tax applied to the item"
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_manufacturer_shipping_discount_amount
+      description: "Discount amount on shipping provided by the manufacturer for the sales order."
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_retailer_shipping_discount_amount
+      description: "Discount amount on shipping provided by the retailer for the sales order."
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_item_manufacturer_item_discount_amount
+      description: "Discount amount on individual items provided by the manufacturer in the sales order."
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_item_retailer_item_discount_amount
+      description: "Discount amount on individual items provided by the retailer in the sales order."
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_identifier
+      description: "Unique identifier for the sales order"
+      tests:
+        - not_null
+    - name: sales_order_channel_order_identifier
+      description: "Channel-specific order identifier"
+    - name: sales_order_seller_identifier
+      description: "Identifier for the customer placing the order"
+      tests:
+        - not_null
+    - name: sales_order_seller_label
+      description: "Name or label of the corporate client"
+      tests:
+        - not_null
+    - name: sales_order_item_part_number
+      description: "Part number of the item"
+      tests:
+        - not_null:
+            severity: warn
+    - name: saler_order_item_rp_product_type
+      description: "Product type of the item"
+    - name: sales_order_item_part_category
+      description: "Category of the item part"
+    - name: sales_order_item_part_subcategory
+      description: "Subcategory of the item part"
+    - name: sales_order_item_part_type
+      description: "Component type of the item part"
+    - name: sales_order_item_vehicle_year_selected
+      description: "Selected vehicle year for the item"
+    - name: sales_order_item_vehicle_make_selected
+      description: "Selected vehicle make for the item"
+    - name: sales_order_item_vehicle_model_selected
+      description: "Selected vehicle model for the item"
+    - name: sales_order_item_brand_label
+      description: "Brand label of the item"
+    - name: sales_order_parent_account_identifier
+      description: "Identifier for the parent account"
+    - name: sales_order_parent_account_label
+      description: "Label for the parent account"
+    - name: sales_order_sales_channel_owner_identifier
+      description: "Identifier for the sales channel owner"
+      tests:
+        - not_null:
+            severity: warn
+    - name: sales_order_sales_channel_owner_label
+      description: "Salesforce account name for the sales channel owner"
+    - name: sales_order_item_brand_owner_identifier
+      description: "Brand owner identifier if brand-account pair exists in base_brands"
+    - name: sales_order_item_brand_owner_label
+      description: "Brand owner label if brand-account pair exists in base_brands"
+    - name: sales_order_item_franchiser_account_identifier
+      description: "Unique identifier for the franchiser's account associated with the sales order item, sourced from the OEM"
+    - name: sales_order_item_franchiser_account_label
+      description: "Franchiser's account name"
+    - name: sales_order_channel_tier
+      description: "Tier classification of the sales channel"
+      tests:
+        - not_null
+        - accepted_values:
+            values: ['Tier 1', 'Tier 3', 'Other']
+    - name: sales_order_item_franchisee_id
+      description: "Franchisee account id associated with the item"
+    - name: sales_order_item_franchisee_label
+      description: "Franchisee account name associated with the item"
+    - name: sales_order_item_franchisee_code
+      description: "Franchisee code associated with the item"
+    - name: sales_order_item_franchisee_name
+      description: "Franchisee name associated with the item"
+    - name: sales_order_item_franchiser_geographic_level_1
+      description: "Franchiser geographic region level 1"
+    - name: sales_order_item_franchiser_geographic_level_2
+      description: "Franchiser geographic region level 2"
+    - name: sales_order_item_franchiser_geographic_level_3
+      description: "Franchiser geographic region level 3"
+    - name: sales_order_sales_channel_type
+      description: "Type of the sales channel"
+      tests:
+        - not_null:
+            severity: warn
+        - accepted_values:
+            values: ['Amazon', 'eBay', 'PluginStore', 'VirtualPartsCounter', 'Walmart', 'Webstore', 'Wholesale']
+            severity: warn
+    - name: sales_order_sales_channel_identifier
+      description: "Channel identifier hash; uses superstore hash for SupplierStore"
+      tests:
+        - not_null:
+            severity: warn
+    - name: sales_order_sales_channel_label
+      description: "Label for the sales channel"
+      tests:
+        - not_null:
+            severity: warn
+    - name: sales_order_placed_time_stamp
+      description: "Timestamp when the order was placed"
+      tests:
+        - not_null
+    - name: sales_order_updated_time_stamp
+      description: "Timestamp when the order was updated."
+      tests:
+          - not_null
+    - name: sales_order_status
+      description: "Order status(will always be 'Canceled')."
+      tests:
+        - not_null
+        - accepted_values:
+            values: ['Canceled']
+    - name: sales_order_cancel_reason
+      description: "Reason for Cancellation."
+    - name: sales_order_cancel_subreason
+      description: "Subreason for cancel."
+    - name: sales_order_cancel_note
+      description: "cancel order note."
+    - name: sales_order_currency
+      description: "Currency used in the order"
+      tests:
+        - not_null
+    - name: sales_order_shipping_amount
+      description: "Shipping amount for the order"
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_subtotal_amount
+      description: "Subtotal amount of the order"
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_total_amount
+      description: "Total amount of the order"
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_shipping_tax_amount
+      description: "Tax amount on shipping"
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_shipping_discount_amount
+      description: "Discount amount on shipping"
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_admin_discount_amount
+      description: "Discount applied at the order level by an administrator or system rule"
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_handling_amount
+      description: "Handling amount for the order"
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_handling_tax_amount
+      description: "Tax amount on handling"
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_retail_delivery_fee
+      description: "Retail delivery fee"
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_shipping_insurance
+      description: "Shipping insurance amount"
+      tests:
+        - not_null
+        - amount_non_negative:
+            severity: error
+    - name: sales_order_shipping_country
+      description: "Country code for shipping address"
+    - name: sales_order_shipping_state_province
+      description: "State or province code for shipping address"
+    - name: sales_order_seller_country
+      description: "Country code of the seller"
+    - name: sales_order_seller_state_province
+      description: "State or province of the seller"
+    - name: sales_order_initial_successful_payment_method
+      description: "Initial successful payment method used"
+      tests:
+        - accepted_values:
+            values: ['Card', 'Offline Payments', 'Wallet']
+    - name: sales_order_item_quantity
+      description: "Quantity of the item ordered"
+      tests:
+        - not_null
+        - quantity_positive:
+            severity: error

@@ -1,0 +1,138 @@
+  version: 2
+  sources:
+  - name: intermediate
+    description: 'intermediate models'
+    database: awsdatacatalog
+    schema: "{{ env_var('SCHEMA_WAREHOUSE') }}"
+    tables:
+      - name: int_sales_orders_report__transform
+        description: 'Intermediate sales orders report transform'
+        tests:
+          - not_empty
+        freshness:
+          warn_after:
+            count: 2
+            period: hour
+          error_after:
+            count: 4
+            period: hour
+        loaded_at_field: 'CAST("$file_modified_time" AS TIMESTAMP)'
+      
+      - name: int_core_access_level__transform
+        description: 'Intermediate core access level transform'
+        tests:
+          - not_empty
+        freshness:
+          warn_after:
+            count: 2
+            period: hour
+          error_after:
+            count: 4
+            period: hour
+        loaded_at_field: 'CAST("$file_modified_time" AS TIMESTAMP)'
+      - name: int_salesforce_account__transform
+        description: 'Intermediate salesforce account transform'
+        tests:
+          - not_empty
+        freshness:
+          warn_after:
+            count: 2
+            period: hour
+          error_after:
+            count: 4
+            period: hour
+        loaded_at_field: 'CAST("$file_modified_time" AS TIMESTAMP)'
+        
+      - name: int_marketing_channel_performance__transform
+        description: 'Intermediate marketing channel performance transform'
+        tests:
+          - not_empty
+        freshness:
+          warn_after:
+            count: 2
+            period: hour
+          error_after:
+            count: 4
+            period: hour
+        loaded_at_field: 'CAST("$file_modified_time" AS TIMESTAMP)'
+        
+      - name: int_marketing_adspend__transform
+        description: 'Intermediate marketing ad spend report'
+        tests:
+          - not_empty
+        freshness:
+          warn_after:
+            count: 2
+            period: hour
+          error_after:
+            count: 4
+            period: hour
+        loaded_at_field: 'CAST("$file_modified_time" AS TIMESTAMP)'
+        
+      - name: int_marketing_order_promotions__transform
+        description: 'Intermediate Order Promotion data'
+        tests:
+          - not_empty
+        freshness:
+          warn_after:
+            count: 2
+            period: hour
+          error_after:
+            count: 4
+            period: hour
+        loaded_at_field: 'CAST("$file_modified_time" AS TIMESTAMP)'
+      - name: int_core_program_details__transform
+        description: 'Intermediate Core Access Level and Program Details data'
+        tests:
+          - not_empty
+        freshness:
+          warn_after:
+            count: 2
+            period: hour
+          error_after:
+            count: 4
+            period: hour
+        loaded_at_field: 'CAST("$file_modified_time" AS TIMESTAMP)'
+
+      - name: int_canceled_orders_stg_report_transform
+        description: 'Intermediate canceled orders bizops report transform'
+        tests:
+          - not_empty
+        freshness:
+          warn_after:
+            count: 2
+            period: hour
+          error_after:
+            count: 4
+            period: hour
+        loaded_at_field: 'CAST("$file_modified_time" AS TIMESTAMP)'
+
+  - name: staging
+    description: 'staging models'
+    database: awsdatacatalog
+    schema: "{{ env_var('SCHEMA_WAREHOUSE') }}"
+    tables:
+      - name: stg_salesforce__dealer_accounts
+        description: 'Salesforce dealer accounts staging model'
+        tests:
+          - not_empty
+        freshness:
+          warn_after:
+            count: 2
+            period: hour
+          error_after:
+            count: 4
+            period: hour
+        loaded_at_field: 'CAST("$file_modified_time" AS TIMESTAMP)'
+      - name: base_brands
+        description: 'Base brands staging model'
+        tests:
+          - not_empty
+        freshness:
+          warn_after:
+            count: 24
+            period: hour
+          error_after:
+            count: 48
+            period: hour
+        loaded_at_field: 'CAST("$file_modified_time" AS TIMESTAMP)'
